@@ -1,4 +1,6 @@
 .git
 .claude
+.github
+deploy
 data
 webhook-api.exe

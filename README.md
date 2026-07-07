@@ -50,6 +50,12 @@ cp .env.example .env
 4. Sua API estará disponível em `http://localhost:${API_PORT}${WEBHOOK_ENDPOINT}` 🎉
 5. A URL pública gerada pelo ngrok pode ser consultada no painel local: [http://localhost:4040](http://localhost:4040) 🌐
 
+### 📦 Só quer rodar a imagem (sem clonar o código)?
+
+A cada push em `master` (depois que a suíte de testes passa), uma imagem é publicada em [`guilhermenono/wra`](https://hub.docker.com/r/guilhermenono/wra) no Docker Hub. Quem só precisa **consumir** a API (ex.: um client de outra pessoa) não precisa do código Go: a pasta [`deploy/`](deploy/) tem um `docker-compose.yml` (usando a imagem publicada) e um `.env.example` prontos para baixar sozinhos — veja o [deploy/README.md](deploy/README.md).
+
+Pra atualizar sempre pra versão mais recente: `docker compose pull && docker compose up -d`.
+
 ## 📨 Testando o webhook
 
 ```bash
