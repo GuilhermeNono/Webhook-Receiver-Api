@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"context"
@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"webhook-api/internal/config"
+	"webhook-api/internal/hub"
+	"webhook-api/internal/store"
 )
 
 const (
@@ -19,7 +22,7 @@ const (
 	storeTimeout        = 3 * time.Second
 )
 
-func webhookHandler(logger *log.Logger, store *Store, hub *Hub) http.HandlerFunc {
+func WebhookHandler(logger *log.Logger, store *store.Store, hub *hub.Hub) http.HandlerFunc {
 	return withMethods(func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, maxWebhookBodyBytes)
 		body, err := io.ReadAll(r.Body)
@@ -46,7 +49,7 @@ func webhookHandler(logger *log.Logger, store *Store, hub *Hub) http.HandlerFunc
 		if err != nil {
 			logger.Printf("failed to persist webhook log: %v", err)
 		} else {
-			hub.publish(entry)
+			hub.Publish(entry)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -58,7 +61,7 @@ func webhookHandler(logger *log.Logger, store *Store, hub *Hub) http.HandlerFunc
 	}, http.MethodPost)
 }
 
-func configHandler(envPath, currentPort, currentEndpoint string, reservedRoutes ...string) http.HandlerFunc {
+func ConfigHandler(envPath, currentPort, currentEndpoint string, reservedRoutes ...string) http.HandlerFunc {
 	return withMethods(func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, maxConfigBodyBytes)
 		w.Header().Set("Content-Type", "application/json")
@@ -84,7 +87,7 @@ func configHandler(envPath, currentPort, currentEndpoint string, reservedRoutes 
 			updates := map[string]string{}
 
 			if body.Port != "" {
-				port, err := validatePort(body.Port)
+				port, err := config.ValidatePort(body.Port)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
 					return
@@ -93,8 +96,8 @@ func configHandler(envPath, currentPort, currentEndpoint string, reservedRoutes 
 			}
 
 			if body.WebhookEndpoint != "" {
-				route := normalizeRoute(body.WebhookEndpoint)
-				if err := validateRoute(route); err != nil {
+				route := config.NormalizeRoute(body.WebhookEndpoint)
+				if err := config.ValidateRoute(route); err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
 					return
 				}
@@ -112,7 +115,7 @@ func configHandler(envPath, currentPort, currentEndpoint string, reservedRoutes 
 				return
 			}
 
-			if err := updateEnvFile(envPath, updates); err != nil {
+			if err := config.UpdateEnvFile(envPath, updates); err != nil {
 				http.Error(w, "failed to persist configuration", http.StatusInternalServerError)
 				return
 			}
@@ -126,7 +129,7 @@ func configHandler(envPath, currentPort, currentEndpoint string, reservedRoutes 
 	}, http.MethodGet, http.MethodPost, http.MethodPut)
 }
 
-func logsHandler(store *Store) http.HandlerFunc {
+func LogsHandler(store *store.Store) http.HandlerFunc {
 	return withMethods(func(w http.ResponseWriter, r *http.Request) {
 		page, err := parsePositiveIntParam(r.URL.Query().Get("page"), 1)
 		if err != nil {

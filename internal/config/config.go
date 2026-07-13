@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"bufio"
@@ -11,14 +11,14 @@ import (
 
 var routePattern = regexp.MustCompile(`^/[A-Za-z0-9/_-]*$`)
 
-func envOrDefault(key, def string) string {
+func EnvOrDefault(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
 	return def
 }
 
-func envBool(key string, def bool) bool {
+func EnvBool(key string, def bool) bool {
 	v := os.Getenv(key)
 	if v == "" {
 		return def
@@ -30,7 +30,7 @@ func envBool(key string, def bool) bool {
 	return b
 }
 
-func normalizeRoute(route string) string {
+func NormalizeRoute(route string) string {
 	route = strings.TrimSpace(route)
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -38,9 +38,7 @@ func normalizeRoute(route string) string {
 	return route
 }
 
-// validateRoute rejects anything that isn't a plain, absolute path made of
-// safe characters, guarding against path traversal and injection attempts.
-func validateRoute(route string) error {
+func ValidateRoute(route string) error {
 	if len(route) < 2 || len(route) > 200 {
 		return fmt.Errorf("route must be between 2 and 200 characters")
 	}
@@ -53,7 +51,7 @@ func validateRoute(route string) error {
 	return nil
 }
 
-func validatePort(raw string) (int, error) {
+func ValidatePort(raw string) (int, error) {
 	p, err := strconv.Atoi(strings.TrimSpace(raw))
 	if err != nil {
 		return 0, fmt.Errorf("port must be a number")
@@ -64,10 +62,7 @@ func validatePort(raw string) (int, error) {
 	return p, nil
 }
 
-// updateEnvFile rewrites (or appends) key=value pairs in the given .env
-// file, preserving existing lines, comments and ordering. Written
-// atomically so a crash mid-write can't corrupt the file.
-func updateEnvFile(path string, updates map[string]string) error {
+func UpdateEnvFile(path string, updates map[string]string) error {
 	var lines []string
 	if f, err := os.Open(path); err == nil {
 		scanner := bufio.NewScanner(f)

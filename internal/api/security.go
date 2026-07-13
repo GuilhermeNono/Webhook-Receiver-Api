@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"crypto/rand"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func generateToken() (string, error) {
+func GenerateToken() (string, error) {
 	buf := make([]byte, 32)
 	if _, err := rand.Read(buf); err != nil {
 		return "", err
@@ -16,7 +16,7 @@ func generateToken() (string, error) {
 	return hex.EncodeToString(buf), nil
 }
 
-func securityHeaders(next http.Handler) http.Handler {
+func SecurityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
 		h.Set("X-Content-Type-Options", "nosniff")
@@ -28,7 +28,7 @@ func securityHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func withAdminAuth(token string, next http.HandlerFunc) http.HandlerFunc {
+func WithAdminAuth(token string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		provided := r.Header.Get("X-Admin-Token")
 		if subtle.ConstantTimeCompare([]byte(provided), []byte(token)) != 1 {

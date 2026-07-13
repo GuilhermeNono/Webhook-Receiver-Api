@@ -1,4 +1,4 @@
-package main
+package store
 
 import (
 	"context"
@@ -26,7 +26,7 @@ type Store struct {
 	db *sql.DB
 }
 
-func openStore(path string) (*Store, error) {
+func OpenStore(path string) (*Store, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
@@ -69,11 +69,6 @@ func (s *Store) Close() error {
 	return s.db.Close()
 }
 
-// InsertLog persists one received request and returns the entry exactly as
-// stored, including the id SQLite assigned to it. The caller (the webhook
-// handler) uses that returned entry to publish a real-time SSE event, so the
-// id in the stream always matches the id a client would see via
-// GET /admin/logs or a Last-Event-ID catch-up query.
 func (s *Store) InsertLog(ctx context.Context, method, path, host, remoteAddr, query string, headers map[string][]string, body string) (LogEntry, error) {
 	headersJSON, err := json.Marshal(headers)
 	if err != nil {
@@ -108,11 +103,6 @@ func (s *Store) InsertLog(ctx context.Context, method, path, host, remoteAddr, q
 	}, nil
 }
 
-// ListLogsSince returns entries with id greater than sinceID, oldest first.
-// It backs the SSE stream's reconnect/catch-up path: a client that comes
-// back after a dropped connection sends the last id it saw (via the
-// Last-Event-ID mechanism) and gets exactly what it missed, instead of
-// silently losing events or re-reading the whole history.
 func (s *Store) ListLogsSince(ctx context.Context, sinceID int64, limit int) ([]LogEntry, error) {
 	rows, err := s.db.QueryContext(ctx,
 		`SELECT id, received_at, method, path, host, remote_addr, query, headers, body
