@@ -49,14 +49,8 @@ func main() {
 	}
 
 	adminToken := os.Getenv("ADMIN_TOKEN")
-	generatedToken := false
 	if adminToken == "" {
-		token, err := api.GenerateToken()
-		if err != nil {
-			log.Fatalf("failed to generate admin token: %v", err)
-		}
-		adminToken = token
-		generatedToken = true
+		log.Fatal("ADMIN_TOKEN is required but not set - define it in .env before starting the server")
 	}
 
 	startupLogger := log.New(os.Stdout, "", log.LstdFlags)
@@ -86,10 +80,6 @@ func main() {
 	addr := ":" + port
 	startupLogger.Printf("listening on %s (webhook endpoint: %s)", addr, endpoint)
 	startupLogger.Printf("admin config endpoint: %s | admin logs endpoint: %s | admin logs stream: %s", configRoute, logsRoute, streamRoute)
-	if generatedToken {
-		startupLogger.Printf("no ADMIN_TOKEN set - generated a random token for this run: %s", adminToken)
-		startupLogger.Printf("set ADMIN_TOKEN in .env to keep it stable across restarts")
-	}
 
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatal(err)

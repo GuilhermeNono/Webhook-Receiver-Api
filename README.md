@@ -32,7 +32,7 @@ cp .env.example .env
 | 🔌 `API_PORT` | Porta em que a API vai escutar | `8080` |
 | 🖥️ `LOG_IN_BASH` | Se `true`, os logs de cada webhook recebido também aparecem no terminal (a persistência em `data/webhook.db` acontece sempre, independente desta flag) | `true` |
 | 🛠️ `ADMIN_ROUTE` | Prefixo das rotas administrativas (config + logs paginados) | `/admin` |
-| 🔐 `ADMIN_TOKEN` | Token exigido (header `X-Admin-Token`) para acessar as rotas administrativas. Se vazio, um token aleatório é gerado a cada start e impresso no log | *(vazio)* |
+| 🔐 `ADMIN_TOKEN` | Token exigido (header `X-Admin-Token`) para acessar as rotas administrativas | *(obrigatório)* |
 
 > ⚠️ **Importante:** mesmo com `LOG_IN_BASH=false`, a mensagem inicial informando que a API subiu (`listening on ...`) **sempre** aparece no terminal. Apenas os logs de cada webhook recebido é que respeitam essa flag.
 
@@ -82,7 +82,7 @@ O arquivo vive dentro da pasta `data/`, que é montada como volume (`./data:/app
 
 ## 🛠️ Endpoints administrativos
 
-Todas as rotas abaixo ficam sob o prefixo definido em `ADMIN_ROUTE` (padrão `/admin`) e exigem o header `X-Admin-Token` com o valor de `ADMIN_TOKEN` (ou o token aleatório impresso no log de inicialização, se a variável não tiver sido definida).
+Todas as rotas abaixo ficam sob o prefixo definido em `ADMIN_ROUTE` (padrão `/admin`) e exigem o header `X-Admin-Token` com o valor de `ADMIN_TOKEN`.
 
 ### Alterar porta/endpoint do webhook — `GET|POST /admin/config`
 
